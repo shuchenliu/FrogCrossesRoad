@@ -1,3 +1,112 @@
 body {
     text-align: center;
+    font-family: 'Coda';
+}
+
+.blur {
+	  filter: blur(8px);
+	    transition: 0.5s;
+}
+
+.overlay {
+  z-index:  2;
+    /* background:  white; */
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    justify-content:  center;
+    /* align-content:  center; */
+    display:  flex;
+    flex-direction: row;
+    visibility: hidden;
+}
+
+.popup-title {
+  font-weight: bold;
+  font-size: 20pt;
+  text-align: center;
+  margin: 0.2em 0 0.2em 0;
+}
+
+.popup-content {
+  font-size : 12pt;
+  padding: 0 0.5em 0 0.5em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.popup-button {
+  font-size: 20px;
+  text-align: center;
+  list-style: none;
+  background-color: green;
+  color: white;
+  width: 40%;
+  border-radius: 5px;
+  margin: auto;
+  cursor: pointer;
+}
+
+.popup-button:hover {
+  background-color: #3e8e41;
+}
+
+.pop-up {
+    height:  250px;
+    width: 350px;
+    background:  white;
+    /* display:  flex; */
+    /* flex-wrap:  wrap; */
+    /* justify-content: space-between; */
+    /* position: relative; */
+    top: 300px;
+    position:  absolute;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.popup-icon {
+  list-style: none;
+  text-align: center;
+  font-size: 50px;
+}
+
+.score-panel {
+    text-align: center;
+    width: 345px;
+}
+
+.hearts {
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+    margin: 0 5px 0 0;
+    font-size: 20px;
+}
+.hearts li {
+    list-style: none;
+    display: inline-block;
+}
+
+.hearts li i {
+  color: red;
+  font-weight: bold;
+}
+.timer_holder {
+  padding: 5px;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.fa-close {
+  color: red;
+}
+
+.fa-check {
+  color: green;
 }

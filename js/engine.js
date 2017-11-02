@@ -9,7 +9,7 @@
  * drawn but that is not the case. What's really happening is the entire "scene"
  * is being drawn over and over, presenting the illusion of animation.
  *
- * This engine makes the canvas' context (ctx) object globally available to make 
+ * This engine makes the canvas' context (ctx) object globally available to make
  * writing app.js a little simpler to work with.
  */
 
@@ -24,9 +24,33 @@ var Engine = (function(global) {
         ctx = canvas.getContext('2d'),
         lastTime;
 
+    // Game Logic Variables
+    let life = 3;
+    let beingPunished = false;
+    let gameEnd = false;
+
+    // Timer feature
+    const timeLimit = 1500;
+
+    let timerHandle = 0;
+    let timeLeft = timeLimit;
+    let nowLimit = timeLimit;
+    const timer = doc.createElement('span');
+    timer.classList.add('time_holder');
+    timer.innerHTML = 'Time Left: '
+    let timeRead = doc.createElement('span');
+    timer.appendChild(timeRead);
+
+    // Main canvas
     canvas.width = 505;
     canvas.height = 606;
-    doc.body.appendChild(canvas);
+
+    const container = document.getElementsByClassName('container')[0];
+    console.log(container);
+    container.children[1].appendChild(timer);
+    container.appendChild(canvas);
+    doc.body.appendChild(container);
+
 
     /* This function serves as the kickoff point for the game loop itself
      * and handles properly calling the update and render methods.
@@ -65,6 +89,7 @@ var Engine = (function(global) {
     function init() {
         reset();
         lastTime = Date.now();
+        life = 3;
         main();
     }
 
@@ -78,10 +103,106 @@ var Engine = (function(global) {
      * on the entities themselves within your app.js file).
      */
     function update(dt) {
+      if (!gameEnd) {
         updateEntities(dt);
-        // checkCollisions();
+        checkSea();
+        checkCollisions();
+        checkOnLawn();
+        checkOnRoad();
+        gameChecker();
+      }
     }
 
+    // check if player is on the lawn
+
+    const checkOnLawn = () => {
+      if (player.y > 220 && timerHandle != 0) {
+        // going back to lawn will be pushished by substracting 3 seconds from the count-down
+        beingPunished = true;
+        resetTimer(100);
+      }
+    }
+
+    // check if player is on the road and make sure the timer is ticking
+
+    const checkOnRoad = () => {
+      if (player.y >= 60 && player.y <= 220 && timerHandle == 0) {
+        setTimer();
+      }
+    }
+
+    // check if the player had reached into the sea...
+    const checkSea = () => {
+        if (player.y < 60) {
+          endGame(true);
+        }
+    }
+
+
+    // check for game-end and update game panel
+    const gameChecker = () => {
+
+      //update timer
+      const timeSpan = doc.getElementsByClassName('time_holder')[0].children[0];
+      timeSpan.innerHTML = (timeLeft / 100).toFixed(2);
+      if (beingPunished) {
+        timeSpan.innerHTML += ' -1s!!'
+      }
+
+      //update life indicator
+      const hearts = doc.getElementsByClassName('hearts')[0];
+      for (let i = 0; i < life; ++i) {
+        const heart = hearts.children[i].children[0];
+        if (heart.classList.contains('fa-heart-o')) {
+          heart.classList.remove('fa-heart-o');
+        }
+
+        if (!heart.classList.contains('fa-heart')) {
+          heart.classList.add('fa-heart');
+        }
+      }
+
+      for (let i = life; i < 3; ++i) {
+        const heart = hearts.children[i].children[0];
+
+        if (heart.classList.contains('fa-heart')) {
+          heart.classList.remove('fa-heart');
+        }
+
+        if (!heart.classList.contains('fa-heart-o')) {
+          heart.classList.add('fa-heart-o');
+        }
+      }
+
+      // end Game
+      if (timeLeft === 0 || life === 0) {
+          endGame(false);
+      }
+    }
+
+    // run const check on each enemy see if it has collides with player
+    const checkCollisions = () => {
+      for (let i = 0; i < allEnemies.length; ++i) {
+        const enemy = allEnemies[i];
+        if (playerHitBy(enemy)) {
+          life--;
+          reset();
+          break;
+        }
+      }
+    };
+
+    const playerHitBy = enemy => {
+      if (enemy.y === player.y) {
+          if (player.x + 30 < enemy.x) {
+            return false;
+          } else {
+            return player.x < enemy.x + 80;
+          }
+      } else {
+        return false;
+      }
+    }
     /* This is called by the update function and loops through all of the
      * objects within your allEnemies array as defined in app.js and calls
      * their update() methods. It will then call the update function for your
@@ -146,10 +267,25 @@ var Engine = (function(global) {
         /* Loop through all of the objects within the allEnemies array and call
          * the render function you have defined.
          */
+
+        /*
         allEnemies.forEach(function(enemy) {
             enemy.render();
         });
+        */
 
+        // new way to loop with garbage collection
+        const length = allEnemies.length;
+        for (let i = 0; i < length; ++i) {
+          let enemy = allEnemies.shift();
+
+          if (enemy.x < 500) {
+            // if it is still within the frame, we render it
+            // and push it back to allEnemies for next check
+            enemy.render();
+            allEnemies.push(enemy);
+          }
+        }
         player.render();
     }
 
@@ -159,6 +295,109 @@ var Engine = (function(global) {
      */
     function reset() {
         // noop
+        console.log("respawned!");
+        // reset timer
+        resetTimer(timeLimit);
+        player.respawn();
+    }
+
+    // in the event that player wins, endGame() will be called
+    // to show pop-up according to the result
+    const endGame = result => {
+      gameEnd = true;
+      allEnemies = [];
+      console.log("handle cleared: " + enemyHandle);
+      clearInterval(enemyHandle);
+      //customize end game pop-up
+      let iconClass, title, message;
+
+      switch (result) {
+        case false:
+          life = 3;
+          iconClass = 'fa-close';
+          title = 'Uh-oh';
+          message = `You failed to reached to sea within ${timeLimit / 100} seconds using 3 lives`;
+          break;
+        case true:
+          iconClass = 'fa-check';
+          title = 'Congratulations'
+          message = `You reached the sea in ${(timeLimit - timeLeft) / 100} seconds with ${life} lives left!`
+          break;
+      }
+
+      reset();
+
+
+      // pop up make up
+      doc.getElementsByClassName('container')[0].classList.add('blur');
+      const popup = doc.getElementsByClassName('pop-up')[0];
+      // icon
+      const icon = popup.getElementsByClassName('popup-icon')[0].children[0];
+      icon.classList.remove('fa-close');
+      icon.classList.remove('fa-check');
+      icon.classList.add(iconClass);
+
+      // title and text
+      const poptitle = popup.getElementsByClassName('popup-title')[0];
+      poptitle.innerHTML = title;
+      const text = popup.getElementsByClassName('popup-content')[0];
+      text.innerHTML = message;
+
+      // button
+      const overlay = doc.getElementsByClassName('overlay')[0];
+
+      const hideOverlay = () => {
+        overlay.style.visibility = 'hidden';
+        document.getElementsByClassName('container')[0].classList.remove('blur');
+      }
+
+      const button = document.getElementsByClassName('popup-button')[0];
+      button.addEventListener('click', (e) => {
+        if (gameEnd) {
+          e.preventDefault();
+          hideOverlay();
+          newGame();
+        }
+      });
+
+      // show the overlay
+      setTimeout(() => {
+        overlay.style.visibility = 'visible';
+      },550);
+    }
+
+    // new game
+    const newGame = () => {
+      gameEnd = false;
+      allEnemies = [];
+      clearInterval(enemyHandle);
+      setEnemies();
+      init();
+    }
+
+    // function that resets timer
+    const resetTimer = num => {
+      clearInterval(timerHandle);
+      timerHandle = 0;
+      if (num === timeLimit) {
+        timeLeft = timeLimit;
+      } else {
+          if (timeLeft - num < 0) {
+            timeLeft = 0;
+          } else {
+            nowLimit = timeLeft - num;
+          }
+      }
+    }
+
+    // function that starts timer
+    const setTimer = () => {
+      beingPunished = false;
+      timeLeft = nowLimit;
+      nowLimit = timeLimit;
+      timerHandle = setInterval(() => {
+        timeLeft -= 1;
+      },10);
     }
 
     /* Go ahead and load all of the images we know we're going to need to
