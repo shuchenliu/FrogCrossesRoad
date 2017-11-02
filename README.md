@@ -1,6 +1,32 @@
-frontend-nanodegree-arcade-game
+Frog Crosses Road
 ===============================
 
-Students should use this [rubric](https://review.udacity.com/#!/projects/2696458597/rubric) for self-checking their submission. Make sure the functions you write are **object-oriented** - either class functions (like Player and Enemy) or class prototype functions such as Enemy.prototype.checkCollisions, and that the keyword 'this' is used appropriately within your class and class prototype functions to refer to the object the function is called upon. Also be sure that the **readme.md** file is updated with your instructions on both how to 1. Run and 2. Play your arcade game.
+Author: Shuchen Liu
 
-For detailed instructions on how to get started, check out this [guide](https://docs.google.com/document/d/1v01aScPjSWCCWQLIpFqvg3-vXLH2e8_SZQKC8jNO0Dc/pub?embedded=true).
+### Game Start
+To play the game, open `index.html` with any modern browser, or visit [here](https://shuchenliu.github.io/FrogCrossesRoad). The game will automatically start.
+
+### Introduction
+The Game has:  
+
+- Two different characters :
+	1. **The player**, which can be controled.
+	2. **Bugs** *a.k.a* enemies, which will be constantly generated and move at various speeds 
+- Three sections:
+	1. **the Lawn**, where player will be randomply respawned and bugs cannot move within.
+	2. **the Road** or the Lanes, where bugs will move horizontally along the lane.
+	3. **the Sea** or the finishing line, which player should aim to reach
+
+
+### Controls
+Use &larr;, &uarr;, &rarr; and &darr; on the keyboard to control the player and try to move the player across the road without being hit by any bugs.
+
+### Game Logic:
+- **Time Limit**: 15s  
+	Each turn, player will have 15 seconds to move across the road.
+- **Chances**: 3   
+	Each turn, player coulde be hit by the bugs at most 3 times; After that game will stop.
+- **Penalties**:  
+	- *Hit by a bug*: Player's lives will be deducted by 1, and will be respawned to lawn.
+	- *Retreat to lawn* : To avoid bugs, player may retreat to lawn. However, 1second will be consequently substracted from total available time.
+
